@@ -8,6 +8,6 @@ public class TaskManager {
 
     public static void main(String[] args) {
         SpringApplication.run(TaskManager.class, args);
+        System.out.println("Hello World!");
     }
 }
-//commit test
