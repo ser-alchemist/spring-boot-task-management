@@ -1,29 +1,41 @@
 package com.aust.task.entity;
 
+import javax.persistence.*;
+
+@Entity
+@Table(name = "users")
 public class User {
 
-    private Long uid;
-    private String uname;
-    private String email;
-    private String password;
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
+
+    @Column(name = "uname")
+    private String uname;
+
+    @Column(name = "email")
+    private String email;
+
+    @Column(name = "password")
+    private String password;
 
     public User() {
     }
 
-    public User(Long uid, String uname, String email, String password) {
-        this.uid = uid;
+    public User(String uname, String email, String password) {
+
         this.uname = uname;
         this.email = email;
         this.password = password;
     }
 
     public Long getUid() {
-        return uid;
+        return id;
     }
 
     public void setUid(Long uid) {
-        this.uid = uid;
+        this.id = uid;
     }
 
     public String getUname() {
@@ -48,5 +60,10 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    @Override
+    public String toString(){
+        return "User [id: "+id+", username: "+uname+", email: "+email+", password: "+password+"]";
     }
 }

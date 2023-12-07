@@ -19,12 +19,13 @@ public class UserService {
         PASSWORD
     }
 
+    /*
     private List<User> userList = new ArrayList<>(Arrays.asList(
             new User(1L, "maria", "maria.jamal@gmail.com", "1234"),
             new User(2L, "marzia", "marzia.jamal@gmail.com", "5678")
-    ));
+    ));*/
 
-
+    private List<User> userList;
     public List<User> getUserList(){
         return userList;
     }
@@ -37,6 +38,7 @@ public class UserService {
             return false;
         }
     }
+
 
 
     public boolean updateUser(field f, Long uid, String newVal){
