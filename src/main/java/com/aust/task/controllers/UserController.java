@@ -63,6 +63,11 @@ public class UserController {
         try{
             System.out.println(user.toString());
             User _user = userRepository.save(new User(user.getUname(), user.getEmail(), user.getPassword()));
+
+            //iomtiaz vai
+//            userRepository.save(user);
+//            return new ResponseEntity<>(HttpStatus.CREATED);
+//
             return new ResponseEntity<>(_user, HttpStatus.CREATED);
         }catch (Exception e){
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
