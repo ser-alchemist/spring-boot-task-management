@@ -10,6 +10,4 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     List<Task> findByDueDate(LocalDate due_date);
     List<Task> sortByPriority();
     List<Task> findByStatus(int status);
-
-
 }
