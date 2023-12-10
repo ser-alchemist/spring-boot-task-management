@@ -1,27 +1,32 @@
 package com.aust.task.entity;
-
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
-@Table(name = "users")
+@Table(name = "users", uniqueConstraints = {
+        @UniqueConstraint(columnNames = "email"),
+        @UniqueConstraint(columnNames = "uname")
+})
+
 public class User {
 
 
     @Id
     @SequenceGenerator(name = "user_seq", sequenceName = "user_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_seq")
+    private Long uid_;
 
-    private Long id;
-
-    @Column(name = "uname")
+    @Column(name = "uname", nullable = false)
     private String uname;
 
-    @Column(name = "email")
+    @Column(name = "email", nullable = false)
     private String email;
 
-    @Column(name = "password")
+    @Column(name = "password", nullable = false)
     private String password;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Task> tasks;
     public User() {
     }
 
@@ -33,20 +38,23 @@ public class User {
     }
 
     public Long getUid() {
-        return id;
+        return uid_;
     }
 
+/*
     public void setUid(Long uid) {
         this.id = uid;
-    }
+    }*/
 
     public String getUname() {
         return uname;
     }
+/*
 
     public void setUname(String uname) {
         this.uname = uname;
     }
+*/
 
     public String getEmail() {
         return email;
@@ -66,6 +74,6 @@ public class User {
 
     @Override
     public String toString(){
-        return "User [id: "+id+", username: "+uname+", email: "+email+", password: "+password+"]";
+        return "User [id: "+uid_+", username: "+uname+", email: "+email+", password: "+password+"]";
     }
 }

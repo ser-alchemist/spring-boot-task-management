@@ -23,22 +23,13 @@ public class UserController {
     UserRepository userRepository;
 
     @GetMapping("/users")
-    public ResponseEntity<List<User>> getAllUsers(@RequestParam(required = false) String username){
+    public ResponseEntity<List<User>> getAllUsers(){
         try{
             List<User> users = new ArrayList<User>();
-
-            if (username==null) {
-                userRepository.findAll().forEach(users::add);
-            }
-            else {
-                userRepository.findByUname(username).forEach(users::add);
-            }
-
-
+                users.addAll(userRepository.findAll());
             if (users.isEmpty()){
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             }
-
             return new ResponseEntity<>(users, HttpStatus.OK);
         }catch (Exception e){
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -63,48 +54,36 @@ public class UserController {
         try{
             System.out.println(user.toString());
             User _user = userRepository.save(new User(user.getUname(), user.getEmail(), user.getPassword()));
-
-            //iomtiaz vai
-//            userRepository.save(user);
-//            return new ResponseEntity<>(HttpStatus.CREATED);
-//
             return new ResponseEntity<>(_user, HttpStatus.CREATED);
         }catch (Exception e){
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
+    @PutMapping("/users/{id}")
+    public ResponseEntity<User> updateUser(@PathVariable("id") long id, @RequestBody String pass){
 
+        Optional<User> userData = userRepository.findById(id);
 
+        if (userData.isPresent()){
+            User _user = userData.get();
+            _user.setPassword(pass);
 
-
-
-
-
-    /*
-    @Autowired
-    public UserController(UserService userService){
-        this.userService = userService;
+            return new ResponseEntity<>(userRepository.save(_user), HttpStatus.OK);
+        }
+        else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
-    @GetMapping(path = "/show")
-    public List<User> getUser() {
-        return userService.getUserList();
+    @DeleteMapping("/users/{id}")
+    public ResponseEntity<HttpStatus> deleteUser(@PathVariable("id") long id){
+        try{
+            userRepository.deleteById(id);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (Exception e){
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
-
-    //method to add user
-    @PostMapping(path = "/add")
-    public List<User> createStudent(@RequestBody User user){
-
-        boolean status = userService.addUser(user);
-        if(status)
-            return userService.getUserList();
-        else
-            return null;
-    }
-
-     */
-
-
 
 }
