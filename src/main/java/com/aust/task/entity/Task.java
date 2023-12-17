@@ -1,6 +1,8 @@
 package com.aust.task.entity;
 
+import com.aust.task.converters.TaskPriorityConverter;
 import com.aust.task.converters.TaskStatusConverter;
+import com.aust.task.enums.TaskPriority;
 import com.aust.task.enums.TaskStatus;
 
 import java.time.LocalDate;
@@ -23,7 +25,8 @@ public class Task {
     @Column(name = "due_date")
     private LocalDate dueDate;
     @Column(name = "priority")
-    private int priority;
+    @Convert(converter = TaskPriorityConverter.class)
+    private TaskPriority priority;
 
 
     @ManyToOne
@@ -33,7 +36,7 @@ public class Task {
     public Task() {
     }
 
-    public Task(Long tid, String description, TaskStatus status, LocalDate dueDate, int priority, User user) {
+    public Task(Long tid, String description, TaskStatus status, LocalDate dueDate, TaskPriority priority, User user) {
         this.tid = tid;
         this.description = description;
         this.status = status;
@@ -76,11 +79,11 @@ public class Task {
         this.dueDate = dueDate;
     }
 
-    public int getPriority() {
+    public TaskPriority getPriority() {
         return priority;
     }
 
-    public void setPriority(int priority) {
+    public void setPriority(TaskPriority priority) {
         this.priority = priority;
     }
 
