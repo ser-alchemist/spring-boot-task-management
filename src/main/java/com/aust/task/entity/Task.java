@@ -1,5 +1,8 @@
 package com.aust.task.entity;
 
+import com.aust.task.converters.TaskStatusConverter;
+import com.aust.task.enums.TaskStatus;
+
 import java.time.LocalDate;
 import javax.persistence.*;
 
@@ -15,7 +18,8 @@ public class Task {
     @Column(name = "description")
     private String description;
     @Column(name = "status")
-    private int status;
+    @Convert(converter = TaskStatusConverter.class)
+    private TaskStatus status;
     @Column(name = "due_date")
     private LocalDate dueDate;
     @Column(name = "priority")
@@ -29,7 +33,7 @@ public class Task {
     public Task() {
     }
 
-    public Task(Long tid, String description, int status, LocalDate dueDate, int priority, User user) {
+    public Task(Long tid, String description, TaskStatus status, LocalDate dueDate, int priority, User user) {
         this.tid = tid;
         this.description = description;
         this.status = status;
@@ -56,11 +60,11 @@ public class Task {
         this.description = description;
     }
 
-    public int getStatus() {
+    public TaskStatus getStatus() {
         return status;
     }
 
-    public void setStatus(int status) {
+    public void setStatus(TaskStatus status) {
         this.status = status;
     }
 
