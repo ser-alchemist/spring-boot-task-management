@@ -1,16 +1,26 @@
 package com.aust.task.controllers;
 
+import static java.util.stream.Collectors.toList;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import com.aust.task.api.TaskResponse;
 import com.aust.task.entity.Task;
 import com.aust.task.entity.User;
+import com.aust.task.enums.TaskPriority;
+import com.aust.task.enums.TaskStatus;
 import com.aust.task.exception.ResourceNotFoundException;
 import com.aust.task.repository.TaskRepository;
 import com.aust.task.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import java.time.ZoneId;
 import java.util.*;
+import java.time.LocalDate;
+import java.util.concurrent.ThreadLocalRandom;
 
 @CrossOrigin(origins = "http://localhost:4200")
 @RestController
@@ -21,6 +31,8 @@ public class TaskController {
     TaskRepository taskRepository;
     @Autowired
     UserRepository userRepository;
+
+    /* without pagination
 
     @GetMapping("/tasks")
     public ResponseEntity<List<Task>> getAllTasks(){
@@ -35,7 +47,53 @@ public class TaskController {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+*/
 
+    @GetMapping("/tasks")
+    public Page<TaskResponse> list(@RequestParam(name = "page", defaultValue = "0") int page,
+                                   @RequestParam(name = "size", defaultValue = "10") int size) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Page<Task> pageResult = taskRepository.findAll(pageRequest);
+        List<TaskResponse> tasks = pageResult
+                .stream()
+                .map(TaskResponse::new)
+                .collect(toList());
+        //System.out.println("API HIT!");
+        return new PageImpl<>(tasks, pageRequest, pageResult.getTotalElements());
+    }
+
+    @GetMapping("/tasks/sort/{sortBy}/{type}")
+    public Page<TaskResponse> sortedByDueDate(@PathVariable("sortBy") String sortBy, @PathVariable("type") String type,
+                                              @RequestParam(name = "page", defaultValue = "0") int page,
+                                              @RequestParam(name = "size", defaultValue = "10") int size) {
+
+        PageRequest pageRequest = PageRequest.of(page, size);
+        if(sortBy.equals("date")){
+            if(type.equals("asc")){
+                pageRequest = PageRequest.of(page, size, Sort.by("dueDate").ascending());
+            }
+            else if(type.equals("desc")){
+                pageRequest = PageRequest.of(page, size, Sort.by("dueDate").descending());
+            }
+        }
+        else if(sortBy.equals("priority")){
+            if(type.equals("asc")){
+                pageRequest = PageRequest.of(page, size, Sort.by("priority").ascending());
+                //System.out.println("API HIT sorted priority asc");
+            }
+            else if(type.equals("desc")){
+                pageRequest = PageRequest.of(page, size, Sort.by("priority").descending());
+            }
+        }
+
+        Page<Task> pageResult = taskRepository.findAll(pageRequest);
+        List<TaskResponse> tasks = pageResult
+                .stream()
+                .map(TaskResponse::new)
+                .collect(toList());
+        //System.out.println("API HIT sorted!");
+        return new PageImpl<>(tasks, pageRequest, pageResult.getTotalElements());
+    }
 
     //for first part only
     @GetMapping("/tasks/{id}")
@@ -54,6 +112,19 @@ public class TaskController {
     public Task createTask(@RequestBody Task task) {
         System.out.println(task.toString());
         return taskRepository.save(task);
+    }
+
+    @PostMapping("/tasks/bulk")
+    public ResponseEntity<Void> bulkCreate() {
+        System.out.println("API HIT! BULK Create request");
+        long minDay = LocalDate.of(2019, 1, 1).toEpochDay();
+        long maxDay = LocalDate.of(2023, 12, 31).toEpochDay();
+
+        for (int i = 1; i <= 100; i++) {
+            long randomDay = ThreadLocalRandom.current().nextLong(minDay, maxDay);
+            taskRepository.save(new Task("Task "+i, TaskStatus.values()[ThreadLocalRandom.current().nextInt(TaskStatus.values().length)], LocalDate.ofEpochDay(randomDay), TaskPriority.values()[ThreadLocalRandom.current().nextInt(TaskPriority.values().length)] ));
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @PutMapping("/tasks/{id}")

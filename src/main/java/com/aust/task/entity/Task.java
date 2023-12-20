@@ -45,6 +45,15 @@ public class Task {
         this.user = user;
     }
 
+    public Task(String description, TaskStatus status, LocalDate dueDate, TaskPriority priority) {
+
+        this.description = description;
+        this.status = status;
+        this.dueDate = dueDate;
+        this.priority = priority;
+
+    }
+
     public Long getTid() {
         return tid;
     }
