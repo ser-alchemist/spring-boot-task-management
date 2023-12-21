@@ -80,11 +80,11 @@ public class TaskController {
         }
         else if(sortBy.equals("priority")){
             if(type.equals("asc")){
-                pageRequest = PageRequest.of(page, size, Sort.by("priority").ascending());
+                pageRequest = PageRequest.of(page, size, Sort.by("priority").ascending().and(Sort.by("createdOn").descending()));
                 //System.out.println("API HIT sorted priority asc");
             }
             else if(type.equals("desc")){
-                pageRequest = PageRequest.of(page, size, Sort.by("priority").descending());
+                pageRequest = PageRequest.of(page, size, Sort.by("priority").descending().and(Sort.by("createdOn").descending()));
             }
         }
 
