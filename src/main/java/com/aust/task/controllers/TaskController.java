@@ -64,12 +64,15 @@ public class TaskController {
         return new PageImpl<>(tasks, pageRequest, pageResult.getTotalElements());
     }
 
-    @GetMapping("/tasks/sort/{sortBy}/{type}")
-    public Page<TaskResponse> sortedByDueDate(@PathVariable("sortBy") String sortBy, @PathVariable("type") String type,
-                                              @RequestParam(name = "page", defaultValue = "0") int page,
-                                              @RequestParam(name = "size", defaultValue = "10") int size) {
+    @GetMapping("/tasks/{filter}/sort/{sortBy}/{type}")
+    public Page<TaskResponse> tasksWithConstraints(@PathVariable("filter") String filter,
+                                                   @PathVariable("sortBy") String sortBy,
+                                                   @PathVariable("type") String type,
+                                                   @RequestParam(name = "page", defaultValue = "0") int page,
+                                                   @RequestParam(name = "size", defaultValue = "10") int size) {
 
-        PageRequest pageRequest = PageRequest.of(page, size);
+        PageRequest pageRequest;
+
         if(sortBy.equals("date")){
             if(type.equals("asc")){
                 pageRequest = PageRequest.of(page, size, Sort.by("dueDate").ascending());
@@ -77,23 +80,51 @@ public class TaskController {
             else if(type.equals("desc")){
                 pageRequest = PageRequest.of(page, size, Sort.by("dueDate").descending());
             }
+            else {
+                pageRequest = PageRequest.of(page, size);
+            }
         }
         else if(sortBy.equals("priority")){
             if(type.equals("asc")){
                 pageRequest = PageRequest.of(page, size, Sort.by("priority").ascending().and(Sort.by("createdOn").descending()));
-                //System.out.println("API HIT sorted priority asc");
             }
             else if(type.equals("desc")){
                 pageRequest = PageRequest.of(page, size, Sort.by("priority").descending().and(Sort.by("createdOn").descending()));
             }
+            else {
+                pageRequest = PageRequest.of(page, size);
+            }
+        }
+        else if(sortBy.equals("default")){
+            if(type.equals("asc")){
+                pageRequest = PageRequest.of(page, size, Sort.by("createdOn").ascending());
+            }
+            else if(type.equals("desc")){
+                pageRequest = PageRequest.of(page, size, Sort.by("createdOn").descending());
+            }
+            else {
+                pageRequest = PageRequest.of(page, size);
+            }
+        }
+        else {
+            pageRequest = PageRequest.of(page, size);
         }
 
-        Page<Task> pageResult = taskRepository.findAll(pageRequest);
+        Page<Task> pageResult;
+        switch (filter){
+            case "active":
+                System.out.println("HIT!");
+                pageResult = taskRepository.findByStatus(pageRequest, TaskStatus.ACTIVE);
+                break;
+            default:
+                pageResult = taskRepository.findAll(pageRequest);
+                break;
+        }
+
         List<TaskResponse> tasks = pageResult
                 .stream()
                 .map(TaskResponse::new)
                 .collect(toList());
-        //System.out.println("API HIT sorted!");
         return new PageImpl<>(tasks, pageRequest, pageResult.getTotalElements());
     }
 
