@@ -17,6 +17,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 import java.time.LocalDate;
@@ -52,7 +54,7 @@ public class TaskController {
     @GetMapping("/tasks")
     public Page<TaskResponse> list(@RequestParam(name = "page", defaultValue = "0") int page,
                                    @RequestParam(name = "size", defaultValue = "10") int size) {
-        PageRequest pageRequest = PageRequest.of(page, size);
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by("createdOn").descending());
         Page<Task> pageResult = taskRepository.findAll(pageRequest);
         List<TaskResponse> tasks = pageResult
                 .stream()
@@ -110,7 +112,8 @@ public class TaskController {
 
     @PostMapping("/tasks")
     public Task createTask(@RequestBody Task task) {
-        System.out.println(task.toString());
+        //System.out.println(task.toString());
+        task.setCreatedOn(LocalDateTime.now(ZoneId.of("GMT+06:00")));
         return taskRepository.save(task);
     }
 
@@ -122,7 +125,11 @@ public class TaskController {
 
         for (int i = 1; i <= 100; i++) {
             long randomDay = ThreadLocalRandom.current().nextLong(minDay, maxDay);
-            taskRepository.save(new Task("Task "+i, TaskStatus.values()[ThreadLocalRandom.current().nextInt(TaskStatus.values().length)], LocalDate.ofEpochDay(randomDay), TaskPriority.values()[ThreadLocalRandom.current().nextInt(TaskPriority.values().length)] ));
+            taskRepository.save(new Task("Task "+i,
+                                    TaskStatus.values()[ThreadLocalRandom.current().nextInt(TaskStatus.values().length)],
+                                    LocalDate.ofEpochDay(randomDay),
+                                    TaskPriority.values()[ThreadLocalRandom.current().nextInt(TaskPriority.values().length)],
+                                    LocalDateTime.now(ZoneId.of("GMT+06:00")) ));
         }
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }

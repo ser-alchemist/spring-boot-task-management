@@ -6,6 +6,7 @@ import com.aust.task.enums.TaskPriority;
 import com.aust.task.enums.TaskStatus;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import javax.persistence.*;
 
 @Entity
@@ -33,6 +34,9 @@ public class Task {
     @JoinColumn(name = "uid_", referencedColumnName = "uid_")
     private User user;
 
+    @Column(name = "created_on", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    private LocalDateTime createdOn;
+
     public Task() {
     }
 
@@ -45,12 +49,13 @@ public class Task {
         this.user = user;
     }
 
-    public Task(String description, TaskStatus status, LocalDate dueDate, TaskPriority priority) {
+    public Task(String description, TaskStatus status, LocalDate dueDate, TaskPriority priority, LocalDateTime createdOn) {
 
         this.description = description;
         this.status = status;
         this.dueDate = dueDate;
         this.priority = priority;
+        this.createdOn = createdOn;
 
     }
 
@@ -102,5 +107,13 @@ public class Task {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public LocalDateTime getCreatedOn() {
+        return createdOn;
+    }
+
+    public void setCreatedOn(LocalDateTime createdOn) {
+        this.createdOn = createdOn;
     }
 }

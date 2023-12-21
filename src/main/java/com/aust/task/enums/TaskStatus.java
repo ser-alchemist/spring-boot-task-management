@@ -3,8 +3,8 @@ package com.aust.task.enums;
 public enum TaskStatus {
     ACTIVE(0, "ACTIVE"),
     INACTIVE(1, "INACTIVE"),
-    COMPLETED(2, "COMPLETED"),
-    CANCELLED(3, "CANCELLED");
+    COMPLETED(2, "COMPLETED");
+    //CANCELLED(3, "CANCELLED");
 
     private final int code;
     private final String label;
