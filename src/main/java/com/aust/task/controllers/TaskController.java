@@ -113,8 +113,16 @@ public class TaskController {
         Page<Task> pageResult;
         switch (filter){
             case "active":
-                System.out.println("HIT!");
+                //System.out.println("HIT!");
                 pageResult = taskRepository.findByStatus(pageRequest, TaskStatus.ACTIVE);
+                break;
+            case "valid":
+                //System.out.println("HIT!");
+                pageResult = taskRepository.findByDueDateGreaterThanEqual(pageRequest, LocalDate.now());
+                break;
+            case "active&valid":
+                System.out.println("HIT!");
+                pageResult = taskRepository.findByStatusAndDueDateGreaterThanEqual(pageRequest, TaskStatus.ACTIVE, LocalDate.now());
                 break;
             default:
                 pageResult = taskRepository.findAll(pageRequest);
