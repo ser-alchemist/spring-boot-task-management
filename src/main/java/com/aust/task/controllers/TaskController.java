@@ -175,7 +175,7 @@ public class TaskController {
 
     @PutMapping("/tasks/{id}")
     public ResponseEntity<Task> updateTask(@PathVariable(value = "id") Long taskId,
-                                                   @RequestBody Task taskDetails) throws ResourceNotFoundException {
+                                           @RequestBody Task taskDetails) throws ResourceNotFoundException {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found for this id :: " + taskId));
 
@@ -184,6 +184,17 @@ public class TaskController {
         task.setStatus(taskDetails.getStatus());
         task.setPriority(taskDetails.getPriority());
         task.setUser(taskDetails.getUser());
+        final Task updatedTask = taskRepository.save(task);
+        return ResponseEntity.ok(updatedTask);
+    }
+
+    @PutMapping("/tasks/makeComplete/{id}")
+    public ResponseEntity<Task> updateTaskComplete(@PathVariable(value = "id") Long taskId,
+                                                   @RequestBody Task taskDetails) throws ResourceNotFoundException {
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new ResourceNotFoundException("Task not found for this id :: " + taskId));
+
+        task.setStatus(TaskStatus.COMPLETED);
         final Task updatedTask = taskRepository.save(task);
         return ResponseEntity.ok(updatedTask);
     }
