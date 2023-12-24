@@ -13,7 +13,7 @@
 ### Feature
 - [x] User Entity
 - [x] Task Entity
-- [] User controller
+- [ ] User controller
 - [x] Task controller
 - [ ] User Repository
 - [x] Task Repository
