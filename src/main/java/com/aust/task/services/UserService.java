@@ -1,7 +1,6 @@
 package com.aust.task.services;
 
 import com.aust.task.entity.User;
-import com.aust.task.student.Student;
 import org.springframework.stereotype.Service;
 
 import javax.jws.soap.SOAPBinding;
