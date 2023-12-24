@@ -11,11 +11,11 @@
 * Database: 
 
 ### Feature
-- [x] User Entity
-- [x] Task Entity
+- [X] User Entity
+- [X] Task Entity
 - [ ] User controller
-- [x] Task controller
+- [X] Task controller
 - [ ] User Repository
-- [x] Task Repository
+- [X] Task Repository
 - [ ] User REST Controller
-- [x] Task Rest Controller
+- [X] Task Rest Controller
