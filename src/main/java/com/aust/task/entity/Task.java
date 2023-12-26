@@ -56,7 +56,16 @@ public class Task {
         this.dueDate = dueDate;
         this.priority = priority;
         this.createdOn = createdOn;
+    }
 
+    public Task(String description, TaskStatus status, LocalDate dueDate, TaskPriority priority, LocalDateTime createdOn, User user) {
+
+        this.description = description;
+        this.status = status;
+        this.dueDate = dueDate;
+        this.priority = priority;
+        this.createdOn = createdOn;
+        this.user = user;
     }
 
     public Long getTid() {

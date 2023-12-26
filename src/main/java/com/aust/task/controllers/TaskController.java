@@ -18,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
@@ -34,6 +35,11 @@ public class TaskController {
     @Autowired
     UserRepository userRepository;
 
+    /*
+    @ModelAttribute("loggedInUser")
+    public User extraData(Principal principal) {
+        return userRepository.findByEmail(principal.getName());
+    }*/
     /* without pagination
 
     @GetMapping("/tasks")
@@ -69,9 +75,13 @@ public class TaskController {
                                                    @PathVariable("sortBy") String sortBy,
                                                    @PathVariable("type") String type,
                                                    @RequestParam(name = "page", defaultValue = "0") int page,
-                                                   @RequestParam(name = "size", defaultValue = "10") int size) {
-
+                                                   @RequestParam(name = "size", defaultValue = "10") int size,
+                                                   Principal principal) {
+        System.out.println("here");
         PageRequest pageRequest;
+
+        System.out.println("Principal: " + principal.getName());
+        //User user = userRepository.findByEmail(principal.getName());
 
         if(sortBy.equals("date")){
             if(type.equals("asc")){
@@ -169,6 +179,25 @@ public class TaskController {
                                     LocalDate.ofEpochDay(randomDay),
                                     TaskPriority.values()[ThreadLocalRandom.current().nextInt(TaskPriority.values().length)],
                                     LocalDateTime.now(ZoneId.of("GMT+06:00")) ));
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @PostMapping("/tasks/bulk/u/{uid}")
+    public ResponseEntity<Void> bulkCreateForUser(@PathVariable Long uid) {
+        User user = userRepository.findById(uid).orElseThrow(() -> new RuntimeException("User not found"));
+        System.out.println("API HIT! BULK Create request");
+        long minDay = LocalDate.of(2019, 1, 1).toEpochDay();
+        long maxDay = LocalDate.of(2023, 12, 31).toEpochDay();
+
+        for (int i = 1; i <= 20; i++) {
+            long randomDay = ThreadLocalRandom.current().nextLong(minDay, maxDay);
+            taskRepository.save(new Task("Task "+i+" u: "+user.getUid(),
+                    TaskStatus.values()[ThreadLocalRandom.current().nextInt(TaskStatus.values().length)],
+                    LocalDate.ofEpochDay(randomDay),
+                    TaskPriority.values()[ThreadLocalRandom.current().nextInt(TaskPriority.values().length)],
+                    LocalDateTime.now(ZoneId.of("GMT+06:00")),
+                    user));
         }
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
