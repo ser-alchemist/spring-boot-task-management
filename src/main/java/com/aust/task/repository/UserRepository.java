@@ -1,6 +1,7 @@
 package com.aust.task.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
-    List<User> findByUname(String uname);
-    List<User> findByEmail(String email);
+    Optional<User> findByUname(String uname);
+    Boolean existsByUname(String uname);
+    Boolean existsByEmail(String email);
 }

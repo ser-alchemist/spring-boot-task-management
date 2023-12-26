@@ -4,7 +4,7 @@ import static java.util.stream.Collectors.toList;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import com.aust.task.api.TaskResponse;
+import com.aust.task.payload.response.TaskResponse;
 import com.aust.task.entity.Task;
 import com.aust.task.entity.User;
 import com.aust.task.enums.TaskPriority;
