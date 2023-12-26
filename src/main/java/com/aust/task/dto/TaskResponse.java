@@ -1,4 +1,4 @@
-package com.aust.task.api;
+package com.aust.task.dto;
 
 import com.aust.task.entity.Task;
 import com.aust.task.enums.TaskPriority;

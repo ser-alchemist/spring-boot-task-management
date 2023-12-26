@@ -1,68 +1,67 @@
 package com.aust.task.services;
 
+import com.aust.task.dto.LoginDTO;
+import com.aust.task.dto.LoginMessage;
+import com.aust.task.dto.UserDTO;
 import com.aust.task.entity.User;
-import com.aust.task.student.Student;
+import com.aust.task.repository.UserRepository;
 import org.springframework.stereotype.Service;
-
-import javax.jws.soap.SOAPBinding;
-import java.util.ArrayList;
-import java.util.Arrays;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
+import java.util.Optional;
 
 
 @Service
 public class UserService {
 
+    @Autowired
+    private UserRepository userRepository;
 
-    private enum field{
-        EMAIL,
-        PASSWORD
-    }
-
-    /*
-    private List<User> userList = new ArrayList<>(Arrays.asList(
-            new User(1L, "maria", "maria.jamal@gmail.com", "1234"),
-            new User(2L, "marzia", "marzia.jamal@gmail.com", "5678")
-    ));*/
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     private List<User> userList;
     public List<User> getUserList(){
         return userList;
     }
 
-    public boolean addUser(User user){
-        try{
-            userList.add(user);
-            return true;
-        }catch(Exception e){
-            return false;
-        }
+    public String  addUser(UserDTO userDTO){
+        User user = new User(
+                userDTO.getUid_(),
+                userDTO.getUname(),
+                userDTO.getEmail(),
+                this.passwordEncoder.encode(userDTO.getPassword()));
+
+        userRepository.save(user);
+        return user.getUname();
     }
 
+    UserDTO userDTO;
 
-
-    public boolean updateUser(field f, Long uid, String newVal){
-        try {
-            for (User user : userList) {
-
-                if (user.getUid().equals(uid)) {
-
-                    if (f == field.EMAIL) {
-                        user.setEmail(newVal);
-                        return true;
-
-                    } else if (f == field.PASSWORD) {
-                        user.setPassword(newVal);
-                        return true;
-                    }
+    public LoginMessage loginUser(LoginDTO loginDTO) {
+        String msg = "";
+        User user1 = userRepository.findByEmail(loginDTO.getEmail());
+        if (user1 != null) {
+            String password = loginDTO.getPassword();
+            String encodedPassword = user1.getPassword();
+            Boolean isPwdRight = passwordEncoder.matches(password, encodedPassword);
+            if (isPwdRight) {
+                Optional<User> user = userRepository.findByEmailAndPassword(loginDTO.getEmail(), encodedPassword);
+                if (user.isPresent()) {
+                    return new LoginMessage("Login Success", true);
+                } else {
+                    return new LoginMessage("Login Failed", false);
                 }
+            } else {
+                return new LoginMessage("Password Not Match", false);
             }
-        } catch (Exception e){
-            return false;
+        }else {
+            return new LoginMessage("Email not exits", false);
         }
-        return false;
     }
 
-    //doisaj
+
+
 
 }

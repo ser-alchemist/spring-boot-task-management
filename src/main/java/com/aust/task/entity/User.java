@@ -20,7 +20,7 @@ public class User {
     @Column(name = "email", nullable = false)
     private String email;
 
-    @Column(name = "password", nullable = false)
+    @Column(name = "password", nullable = false, length = 255)
     private String password;
 
     //@OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
@@ -28,8 +28,14 @@ public class User {
     public User() {
     }
 
-    public User(String uname, String email, String password) {
+    public User(Long uid_, String uname, String email, String password) {
+        this.uid_ = uid_;
+        this.uname = uname;
+        this.email = email;
+        this.password = password;
+    }
 
+    public User(String uname, String email, String password) {
         this.uname = uname;
         this.email = email;
         this.password = password;

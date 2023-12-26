@@ -1,28 +1,39 @@
 package com.aust.task.controllers;
 
-import com.aust.task.entity.User;
-import com.aust.task.repository.UserRepository;
+import com.aust.task.dto.LoginDTO;
+import com.aust.task.dto.LoginMessage;
+import com.aust.task.dto.UserDTO;
 import com.aust.task.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
 @CrossOrigin(origins = "http://localhost:4200")
 @RestController
-@RequestMapping(path = "api/v1")
+@RequestMapping(path = "api/v1/user")
 public class UserController {
 
     //private final UserService userService;
 
     @Autowired
-    UserRepository userRepository;
+    private UserService userService;
 
-    @GetMapping("/users")
+    @PostMapping(path = "/save")
+    public String saveUser(@RequestBody UserDTO userDTO)
+    {
+        System.out.println("username: "+userDTO.getUname()+", email: "+userDTO.getEmail()+", password: "+userDTO.getPassword());
+        String uname = userService.addUser(userDTO);
+        return uname;
+    }
+
+    @PostMapping(path = "/login")
+    public ResponseEntity<?> loginUser(@RequestBody LoginDTO loginDTO)
+    {
+        LoginMessage loginMessage = userService.loginUser(loginDTO);
+        return ResponseEntity.ok(loginMessage);
+    }
+
+    /*@GetMapping("/users")
     public ResponseEntity<List<User>> getAllUsers(){
         try{
             List<User> users = new ArrayList<User>();
@@ -84,5 +95,5 @@ public class UserController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
+*/
 }
