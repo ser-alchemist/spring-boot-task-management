@@ -37,6 +37,10 @@ public class UserService {
         return user.getUname();
     }
 
+    public long getUid(String email){
+        User user = userRepository.findByEmail(email);
+        return user.getUid();
+    }
     UserDTO userDTO;
 
     public LoginMessage loginUser(LoginDTO loginDTO) {

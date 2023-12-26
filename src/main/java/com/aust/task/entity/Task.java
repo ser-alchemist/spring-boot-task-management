@@ -49,6 +49,15 @@ public class Task {
         this.user = user;
     }
 
+    public Task( String description, TaskStatus status, LocalDate dueDate, TaskPriority priority, LocalDateTime createdOn, User user) {
+        this.description = description;
+        this.status = status;
+        this.dueDate = dueDate;
+        this.priority = priority;
+        this.createdOn = createdOn;
+        this.user = user;
+    }
+
     public Task(String description, TaskStatus status, LocalDate dueDate, TaskPriority priority, LocalDateTime createdOn) {
 
         this.description = description;

@@ -51,7 +51,101 @@ public class TaskController {
     }
 */
 
-    @GetMapping("/tasks")
+    //after login
+    @GetMapping("/tasks/u/{uid}")
+    public Page<TaskResponse> taskByUser(@PathVariable Long uid,
+                                         @RequestParam(name = "page", defaultValue = "0") int page,
+                                         @RequestParam(name = "size", defaultValue = "10") int size) {
+        System.out.println("Inside GET");
+        User user = userRepository.findById(uid).orElseThrow(() -> new RuntimeException("User not found"));
+        System.out.println("user name: "+user.getUname());
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by("createdOn").descending());
+        Page<Task> pageResult = taskRepository.findAllByUser(pageRequest, user);
+        List<TaskResponse> tasks = pageResult
+                .stream()
+                .map(TaskResponse::new)
+                .collect(toList());
+        System.out.println("API HIT!");
+        return new PageImpl<>(tasks, pageRequest, pageResult.getTotalElements());
+    }
+
+    @GetMapping("/tasks/u/{uid}/{filter}/sort/{sortBy}/{type}")
+    public Page<TaskResponse> tasksWithConstraints(@PathVariable("uid") Long uid,
+                                                   @PathVariable("filter") String filter,
+                                                   @PathVariable("sortBy") String sortBy,
+                                                   @PathVariable("type") String type,
+                                                   @RequestParam(name = "page", defaultValue = "0") int page,
+                                                   @RequestParam(name = "size", defaultValue = "10") int size) {
+
+        User user = userRepository.findById(uid).orElseThrow(() -> new RuntimeException("User not found"));
+        PageRequest pageRequest;
+
+        if(sortBy.equals("date")){
+            if(type.equals("asc")){
+                pageRequest = PageRequest.of(page, size, Sort.by("dueDate").ascending());
+            }
+            else if(type.equals("desc")){
+                pageRequest = PageRequest.of(page, size, Sort.by("dueDate").descending());
+            }
+            else {
+                pageRequest = PageRequest.of(page, size);
+            }
+        }
+        else if(sortBy.equals("priority")){
+            if(type.equals("asc")){
+                pageRequest = PageRequest.of(page, size, Sort.by("priority").ascending().and(Sort.by("createdOn").descending()));
+            }
+            else if(type.equals("desc")){
+                pageRequest = PageRequest.of(page, size, Sort.by("priority").descending().and(Sort.by("createdOn").descending()));
+            }
+            else {
+                pageRequest = PageRequest.of(page, size);
+            }
+        }
+        else if(sortBy.equals("default")){
+            if(type.equals("asc")){
+                pageRequest = PageRequest.of(page, size, Sort.by("createdOn").ascending());
+            }
+            else if(type.equals("desc")){
+                pageRequest = PageRequest.of(page, size, Sort.by("createdOn").descending());
+            }
+            else {
+                pageRequest = PageRequest.of(page, size);
+            }
+        }
+        else {
+            pageRequest = PageRequest.of(page, size);
+        }
+
+        Page<Task> pageResult;
+        switch (filter){
+            case "active":
+                //System.out.println("HIT!");
+                //pageResult = taskRepository.findByStatus(pageRequest, TaskStatus.ACTIVE);
+                pageResult = taskRepository.findByStatusAndUser(pageRequest, TaskStatus.ACTIVE, user);
+                break;
+            case "valid":
+                //System.out.println("HIT!");
+                pageResult = taskRepository.findByDueDateGreaterThanEqualAndUser(pageRequest, LocalDate.now(), user);
+                break;
+            case "active&valid":
+                System.out.println("HIT!");
+                pageResult = taskRepository.findByStatusAndUserAndDueDateGreaterThanEqual(pageRequest, TaskStatus.ACTIVE, user, LocalDate.now());
+                break;
+            default:
+                pageResult = taskRepository.findAllByUser(pageRequest, user);
+                break;
+        }
+
+        List<TaskResponse> tasks = pageResult
+                .stream()
+                .map(TaskResponse::new)
+                .collect(toList());
+        return new PageImpl<>(tasks, pageRequest, pageResult.getTotalElements());
+    }
+
+
+   /* @GetMapping("/tasks")
     public Page<TaskResponse> list(@RequestParam(name = "page", defaultValue = "0") int page,
                                    @RequestParam(name = "size", defaultValue = "10") int size) {
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by("createdOn").descending());
@@ -62,8 +156,9 @@ public class TaskController {
                 .collect(toList());
         //System.out.println("API HIT!");
         return new PageImpl<>(tasks, pageRequest, pageResult.getTotalElements());
-    }
+    }*/
 
+    /*//before login
     @GetMapping("/tasks/{filter}/sort/{sortBy}/{type}")
     public Page<TaskResponse> tasksWithConstraints(@PathVariable("filter") String filter,
                                                    @PathVariable("sortBy") String sortBy,
@@ -135,6 +230,8 @@ public class TaskController {
                 .collect(toList());
         return new PageImpl<>(tasks, pageRequest, pageResult.getTotalElements());
     }
+*/
+
 
     //for first part only
     @GetMapping("/tasks/{id}")
@@ -173,12 +270,30 @@ public class TaskController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
+    @PostMapping("/tasks/bulk/u/{uid}")
+    public ResponseEntity<Void> bulkCreateForUser(@PathVariable Long uid) {
+        User user = userRepository.findById(uid).orElseThrow(() -> new RuntimeException("User not found"));
+        System.out.println("API HIT! BULK Create request");
+        long minDay = LocalDate.of(2019, 1, 1).toEpochDay();
+        long maxDay = LocalDate.of(2023, 12, 31).toEpochDay();
+
+        for (int i = 1; i <= 20; i++) {
+            long randomDay = ThreadLocalRandom.current().nextLong(minDay, maxDay);
+            taskRepository.save(new Task("Task "+i+" "+user.getUid(),
+                    TaskStatus.values()[ThreadLocalRandom.current().nextInt(TaskStatus.values().length)],
+                    LocalDate.ofEpochDay(randomDay),
+                    TaskPriority.values()[ThreadLocalRandom.current().nextInt(TaskPriority.values().length)],
+                    LocalDateTime.now(ZoneId.of("GMT+06:00")),
+                    user));
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
     @PutMapping("/tasks/{id}")
     public ResponseEntity<Task> updateTask(@PathVariable(value = "id") Long taskId,
                                            @RequestBody Task taskDetails) throws ResourceNotFoundException {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found for this id :: " + taskId));
-
         task.setDescription(taskDetails.getDescription());
         task.setDueDate(taskDetails.getDueDate());
         task.setStatus(taskDetails.getStatus());
@@ -216,7 +331,8 @@ public class TaskController {
 
     //////////////////////////////////////////////////////////////
 
-    @GetMapping("/tasks/u/{id}")
+   /* before login
+   @GetMapping("/tasks/u/{id}")
     public ResponseEntity<List<Task>> getTaskByUserId(@PathVariable("id") long id){
 
         Optional<User> userData = userRepository.findById(id);
@@ -238,7 +354,7 @@ public class TaskController {
         else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-    }
+    }*/
 
     @PostMapping("/tasks/u/{id}")
     public ResponseEntity<Task> createTask(@PathVariable Long id, @RequestBody Task task){

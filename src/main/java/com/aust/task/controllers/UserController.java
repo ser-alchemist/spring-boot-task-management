@@ -33,6 +33,12 @@ public class UserController {
         return ResponseEntity.ok(loginMessage);
     }
 
+    @GetMapping(path = "/getUid")
+    public Long getUid(@RequestParam(name = "email") String email)
+    {
+        return userService.getUid(email);
+    }
+
     /*@GetMapping("/users")
     public ResponseEntity<List<User>> getAllUsers(){
         try{
