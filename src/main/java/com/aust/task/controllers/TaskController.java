@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -57,7 +58,7 @@ public class TaskController {
     }
 */
 
-    @GetMapping("/tasks")
+/*    @GetMapping("/tasks")
     public Page<TaskResponse> list(@RequestParam(name = "page", defaultValue = "0") int page,
                                    @RequestParam(name = "size", defaultValue = "10") int size) {
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by("createdOn").descending());
@@ -68,7 +69,7 @@ public class TaskController {
                 .collect(toList());
         //System.out.println("API HIT!");
         return new PageImpl<>(tasks, pageRequest, pageResult.getTotalElements());
-    }
+    }*/
 
     @GetMapping("/tasks/{filter}/sort/{sortBy}/{type}")
     public Page<TaskResponse> tasksWithConstraints(@PathVariable("filter") String filter,
@@ -77,11 +78,14 @@ public class TaskController {
                                                    @RequestParam(name = "page", defaultValue = "0") int page,
                                                    @RequestParam(name = "size", defaultValue = "10") int size,
                                                    Principal principal) {
-        System.out.println("here");
+        //System.out.println("here");
         PageRequest pageRequest;
 
-        System.out.println("Principal: " + principal.getName());
-        //User user = userRepository.findByEmail(principal.getName());
+        //principal getName == username
+
+        //System.out.println("Principal: " + principal.getName());
+        User user = userRepository.findByUname(principal.getName())
+                .orElseThrow(() -> new UsernameNotFoundException("User Not Found with username: " + principal.getName()));
 
         if(sortBy.equals("date")){
             if(type.equals("asc")){
@@ -124,18 +128,19 @@ public class TaskController {
         switch (filter){
             case "active":
                 //System.out.println("HIT!");
-                pageResult = taskRepository.findByStatus(pageRequest, TaskStatus.ACTIVE);
+                pageResult = taskRepository.findByUserAndStatus(pageRequest, user, TaskStatus.ACTIVE);
                 break;
             case "valid":
                 //System.out.println("HIT!");
-                pageResult = taskRepository.findByDueDateGreaterThanEqual(pageRequest, LocalDate.now());
+                pageResult = taskRepository.findByUserAndDueDateGreaterThanEqual(pageRequest, user, LocalDate.now());
                 break;
             case "active&valid":
-                System.out.println("HIT!");
-                pageResult = taskRepository.findByStatusAndDueDateGreaterThanEqual(pageRequest, TaskStatus.ACTIVE, LocalDate.now());
+                //System.out.println("HIT!");
+                pageResult = taskRepository.findByUserAndStatusAndDueDateGreaterThanEqual(pageRequest, user, TaskStatus.ACTIVE, LocalDate.now());
                 break;
             default:
-                pageResult = taskRepository.findAll(pageRequest);
+                //pageResult = taskRepository.findAll(pageRequest);
+                pageResult = taskRepository.findByUser(pageRequest, user);
                 break;
         }
 
@@ -148,8 +153,12 @@ public class TaskController {
 
     //for first part only
     @GetMapping("/tasks/{id}")
-    public ResponseEntity<Task> getTaskById(@PathVariable("id") long id){
-        Optional<Task> taskData = taskRepository.findById(id);
+    public ResponseEntity<Task> getTaskById(@PathVariable("id") long id,
+                                            Principal principal){
+
+        User user = userRepository.findByUname(principal.getName())
+                .orElseThrow(() -> new UsernameNotFoundException("User Not Found with username: " + principal.getName()));
+        Optional<Task> taskData = taskRepository.findByUserAndTid(user, id);
 
         if(taskData.isPresent()){
             return new ResponseEntity<>(taskData.get(), HttpStatus.OK);
@@ -160,9 +169,14 @@ public class TaskController {
     }
 
     @PostMapping("/tasks")
-    public Task createTask(@RequestBody Task task) {
+    public Task createTask(@RequestBody Task task,
+                           Principal principal) {
         //System.out.println(task.toString());
+        User user = userRepository.findByUname(principal.getName())
+                .orElseThrow(() -> new UsernameNotFoundException("User Not Found with username: " + principal.getName()));
+
         task.setCreatedOn(LocalDateTime.now(ZoneId.of("GMT+06:00")));
+        task.setUser(user);
         return taskRepository.save(task);
     }
 
@@ -203,18 +217,29 @@ public class TaskController {
     }
 
     @PutMapping("/tasks/{id}")
-    public ResponseEntity<Task> updateTask(@PathVariable(value = "id") Long taskId,
-                                           @RequestBody Task taskDetails) throws ResourceNotFoundException {
+    public ResponseEntity<Void> updateTask(@PathVariable(value = "id") Long taskId,
+                                           @RequestBody Task taskDetails,
+                                            Principal principal) throws ResourceNotFoundException {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found for this id :: " + taskId));
+        User user = userRepository.findByUname(principal.getName())
+                .orElseThrow(() -> new UsernameNotFoundException("User Not Found with username: " + principal.getName()));
 
-        task.setDescription(taskDetails.getDescription());
-        task.setDueDate(taskDetails.getDueDate());
-        task.setStatus(taskDetails.getStatus());
-        task.setPriority(taskDetails.getPriority());
-        task.setUser(taskDetails.getUser());
-        final Task updatedTask = taskRepository.save(task);
-        return ResponseEntity.ok(updatedTask);
+        Optional<Task> task1 = taskRepository.findByUserAndTid(user, taskId);
+
+        if(task1.isPresent()){
+            task.setDescription(taskDetails.getDescription());
+            task.setDueDate(taskDetails.getDueDate());
+            task.setStatus(taskDetails.getStatus());
+            task.setPriority(taskDetails.getPriority());
+            task.setUser(user);
+            final Task updatedTask = taskRepository.save(task);
+            return ResponseEntity.status(HttpStatus.OK).build();
+        }
+        else {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
     }
 
     @PutMapping("/tasks/makeComplete/{id}")
@@ -245,7 +270,7 @@ public class TaskController {
 
     //////////////////////////////////////////////////////////////
 
-    @GetMapping("/tasks/u/{id}")
+   /* @GetMapping("/tasks/u/{id}")
     public ResponseEntity<List<Task>> getTaskByUserId(@PathVariable("id") long id){
 
         Optional<User> userData = userRepository.findById(id);
@@ -268,7 +293,7 @@ public class TaskController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
-
+*/
     @PostMapping("/tasks/u/{id}")
     public ResponseEntity<Task> createTask(@PathVariable Long id, @RequestBody Task task){
         try{

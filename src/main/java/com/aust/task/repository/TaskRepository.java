@@ -16,10 +16,21 @@ import org.springframework.data.domain.Pageable;
 
 @Repository
 public interface TaskRepository extends PagingAndSortingRepository<Task, Long> {
-    List<Task> findByUser(User user);
+    Page<Task> findByUser(Pageable pageable, User user);
+    Page<Task> findByUserAndStatus(Pageable pageable, User user, TaskStatus status);
+    Page<Task> findByUserAndDueDateGreaterThanEqual(Pageable pageable, User user, LocalDate date);
+    Page<Task> findByUserAndStatusAndDueDateGreaterThanEqual(Pageable pageable, User user, TaskStatus status, LocalDate date);
+
+    Optional<Task> findByUserAndTid(User user, Long tid);
+
+
     Page<Task> findByStatus(Pageable pageable, TaskStatus status);
     Page<Task> findByDueDateGreaterThanEqual(Pageable pageable, LocalDate date);
     Page<Task> findByStatusAndDueDateGreaterThanEqual(Pageable pageable, TaskStatus status, LocalDate date);
+
+
+
+
     //List<Task> findByTid(Long tid);
     //List<Task> findByDueDate(LocalDate due_date);
     //List<Task> sortByPriority();
