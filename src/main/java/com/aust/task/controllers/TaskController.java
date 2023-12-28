@@ -1,6 +1,8 @@
 package com.aust.task.controllers;
 
 import static java.util.stream.Collectors.toList;
+
+import com.aust.task.exception.NoAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -219,7 +221,7 @@ public class TaskController {
     @PutMapping("/tasks/{id}")
     public ResponseEntity<Void> updateTask(@PathVariable(value = "id") Long taskId,
                                            @RequestBody Task taskDetails,
-                                            Principal principal) throws ResourceNotFoundException {
+                                            Principal principal) throws ResourceNotFoundException, NoAccessException {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found for this id :: " + taskId));
         User user = userRepository.findByUname(principal.getName())
@@ -237,7 +239,7 @@ public class TaskController {
             return ResponseEntity.status(HttpStatus.OK).build();
         }
         else {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            throw new NoAccessException("User do not have access to update this task");
         }
 
     }
@@ -254,15 +256,25 @@ public class TaskController {
     }
 
     @DeleteMapping("/tasks/{id}")
-    public Map<String, Boolean> deleteEmployee(@PathVariable(value = "id") Long taskId)
-            throws ResourceNotFoundException {
+    public Map<String, Boolean> deleteEmployee(@PathVariable(value = "id") Long taskId,
+                                                Principal principal)
+            throws ResourceNotFoundException, NoAccessException {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found for this id :: " + taskId));
 
-        taskRepository.delete(task);
-        Map<String, Boolean> response = new HashMap<>();
-        response.put("deleted", Boolean.TRUE);
-        return response;
+        User user = userRepository.findByUname(principal.getName())
+                .orElseThrow(() -> new UsernameNotFoundException("User Not Found with username: " + principal.getName()));
+
+        Optional<Task> task1 = taskRepository.findByUserAndTid(user, taskId);
+        if(task1.isPresent()){
+            taskRepository.delete(task);
+            Map<String, Boolean> response = new HashMap<>();
+            response.put("deleted", Boolean.TRUE);
+            return response;
+        }else {
+            throw new NoAccessException("User do not have access to delete this task");
+        }
+
     }
 
 
